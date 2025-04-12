@@ -1,0 +1,24 @@
+{
+    "manifest_version": 3,
+    "name": "FairnessLens",
+    "version": "1.0",
+    "description": "Detect biases in social media content",
+    "icons": {
+      "48": "icons/icon48.png"
+    },
+    "permissions": ["storage", "activeTab"],
+    "host_permissions": ["*://*/*"],
+    "background": {
+      "service_worker": "background.js"
+    },
+    "content_scripts": [
+      {
+        "matches": ["*://*.twitter.com/*", "*://*.facebook.com/*", "*://*.reddit.com/*"],
+        "js": ["content.js"]
+      }
+    ],
+    "action": {
+      "default_popup": "popup/popup.html",
+      "default_icon": "icons/icon48.png"
+    }
+  }
