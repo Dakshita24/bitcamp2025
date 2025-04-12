@@ -1,16 +1,4 @@
 // Medical keywords to monitor
-const MEDICAL_TERMS = [
-    'cancer', 'vaccine', 'covid', 'virus', 'treatment', 'cure', 
-    'medicine', 'drug', 'pharma', 'health', 'disease', 'immune',
-    'doctor', 'hospital', 'cdc', 'who', 'fda'
-  ];
-  
-  // Trusted sources for verification
-  const TRUSTED_SOURCES = [
-    'cdc.gov', 'who.int', 'nih.gov', 'mayoclinic.org',
-    'webmd.com', 'healthline.com', 'medicalnewstoday.com'
-  ];
-  
   // Common misinformation patterns (simplified)
   const MISINFO_PATTERNS = [
     { pattern: /miracle cure/i, reason: "Unsubstantiated 'miracle cure' claims" },
@@ -52,7 +40,7 @@ const MEDICAL_TERMS = [
     if (!hasMedicalTerms) return;
   
     try {
-      const result = await analyzeMedicalContent(text);
+      const result = await detectBias(text);
       addWarningIndicator(postNode, result);
       
       // Send data to background script
@@ -67,7 +55,7 @@ const MEDICAL_TERMS = [
   }
   
   // Simplified analysis (replace with actual API call in production)
-  async function analyzeMedicalContent(text) {
+  /*async function detectBias(text) {
     const claims = [];
     let hasWarning = false;
     
@@ -96,7 +84,72 @@ const MEDICAL_TERMS = [
       claims,
       textSnippet: text.slice(0, 100) + (text.length > 100 ? '...' : '')
     };
-  }
+  }*/
+
+    async function detectBias(text) {
+      try {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${AIzaSyBZ1Ey8_NVz-_dTHFaZMguGgrMbpDI82Kg}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            contents: [{
+              parts: [{ 
+                text: `Analyze the following social media post for medical misinformation. 
+                Return a JSON response with the following format:
+                {
+                  "hasMisinformation": boolean,
+                  "issues": [{ "type": string, "explanation": string }],
+                  "confidenceScore": number between 0 and 1
+                }
+                
+                Text to analyze: "${text}"` 
+              }]
+            }]
+          })
+        });
+    
+        if (!response.ok) {
+          throw new Error(`API request failed with status ${response.status}`);
+        }
+    
+        const data = await response.json();
+        const responseText = data.candidates[0].content.parts[0].text;
+        
+        // Try to find and parse JSON in the response
+        let jsonMatch = responseText.match(/\{[\s\S]*\}/);
+        let result = { hasMisinformation: false, issues: [], confidenceScore: 0 };
+        
+        if (jsonMatch) {
+          try {
+            result = JSON.parse(jsonMatch[0]);
+          } catch (e) {
+            console.error("Failed to parse JSON from response:", e);
+          }
+        }
+        
+        // Match the expected return format of your existing detectBias function
+        const biases = result.issues ? result.issues.map(issue => ({
+          type: issue.type || 'medical misinformation',
+          direction: issue.explanation || 'inaccurate'
+        })) : [];
+        
+        return {
+          hasBias: result.hasMisinformation,
+          biases: biases,
+          score: result.confidenceScore || 0
+        };
+      } catch (error) {
+        console.error("Gemini API call failed:", error);
+        // Return the same format as the original function in case of error
+        return {
+          hasBias: false,
+          biases: [],
+          score: 0
+        };
+      }
+    }
   
   function addWarningIndicator(postNode, result) {
     if (result.hasWarning) {
@@ -132,4 +185,30 @@ const MEDICAL_TERMS = [
     }
   }
 
+  // Temporary test code - add this at the end of your content.js file
+// This will run when you load your extension on a social media site
+function testDetectBias() {
+  console.log("Testing detectBias function with Gemini API...");
+  
+  // Test with an example containing medical misinformation
+  const testText = "Drinking bleach can cure COVID-19 and boost your immune system.";
+  
+  detectBias(testText).then(result => {
+    console.log("Test result:", result);
+    console.log("Has bias/misinformation:", result.hasBias);
+    console.log("Detected issues:", result.biases);
+    console.log("Confidence score:", result.score);
+    
+    if (result.hasBias) {
+      console.log("✅ Test successful - detected misinformation!");
+    } else {
+      console.log("⚠️ Test unexpected - didn't detect clear misinformation");
+    }
+  }).catch(error => {
+    console.error("❌ Test failed with error:", error);
+  });
+}
+
+// Run the test when the content script loads
+testDetectBias();
   
