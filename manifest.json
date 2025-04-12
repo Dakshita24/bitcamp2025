@@ -1,8 +1,8 @@
 {
     "manifest_version": 3,
-    "name": "FairnessLens",
+    "name": "MedTruth",
     "version": "1.0",
-    "description": "Detect biases in social media content",
+    "description": "Detect medical misinformation in social media content",
     "icons": {
       "48": "icons/icon48.png"
     },

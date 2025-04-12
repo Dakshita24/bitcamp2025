@@ -1,20 +1,25 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>FairnessLens</title>
+  <title>MedTruth</title>
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
   <div class="container">
-    <h1>FairnessLens</h1>
-    <div id="status">Analyzing current page...</div>
+    <h1>MedTruth</h1>
+    <div id="status">Scanning for medical misinformation...</div>
     <div class="controls">
       <button id="toggle">Enable/Disable</button>
+      <button id="settings">Settings</button>
     </div>
     <div class="stats">
-      <h3>Today's Stats</h3>
-      <p>Posts analyzed: <span id="postCount">0</span></p>
-      <p>Potential biases found: <span id="biasCount">0</span></p>
+      <h3>Today's Alerts</h3>
+      <p>Medical posts detected: <span id="medicalCount">0</span></p>
+      <p>Warnings issued: <span id="warningCount">0</span></p>
+    </div>
+    <div id="latestWarnings" style="margin-top: 15px; display: none;">
+      <h4>Recent Warnings</h4>
+      <ul id="warningList"></ul>
     </div>
   </div>
   <script src="popup.js"></script>
